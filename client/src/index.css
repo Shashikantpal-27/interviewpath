@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #670D2F;
+  --primary-dark: #3A0519;
+  --secondary: #EF88AD;
+  --accent: #A53860;
+
+  --muted: #9C848D;
+  --background: #FFFFFF;
+  --soft-background: #FFF7FA;
+
+  --info: #670D2F;
+  --text: #3A0519;
+  --white: #FFFFFF;
+  --border: #F1D5E0;
+}
+
+/* Cursor */
+button,
+a,
+summary,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+.cursor-pointer{
+  cursor:pointer;
+}
+
+body{
+  background:var(--background);
+  color:var(--text);
+}
