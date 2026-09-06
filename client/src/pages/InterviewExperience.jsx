@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "http://localhost:8080/api/v1/interview-experiences";
+const API_URL = "https://interviewpath.onrender.com/api/v1/interview-experiences";
 const emptyForm = {
   company: "",
   role: "",
