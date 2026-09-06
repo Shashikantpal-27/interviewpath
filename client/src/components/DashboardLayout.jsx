@@ -132,10 +132,10 @@ function DashboardLayout({
       icon: <FaCode />,
     },
     {
-      to: "/community",
-      label: "Interview Community",
-      icon: <FaUsers />,
-    },
+  to: "/interview-experiences",
+  label: "Interview Community",
+  icon: <FaUsers />,
+},
   ];
 
   // ================= SIDEBAR CONTENT =================

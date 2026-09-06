@@ -37,21 +37,13 @@ const interviewExperienceSchema = new mongoose.Schema(
 
     difficulty: {
       type: String,
-      enum: [
-        "easy",
-        "medium",
-        "hard",
-      ],
+      enum: ["easy", "medium", "hard"],
       default: "medium",
     },
 
     status: {
       type: String,
-      enum: [
-        "pending",
-        "approved",
-        "rejected",
-      ],
+      enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
 
@@ -59,16 +51,22 @@ const interviewExperienceSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    // Users who liked this experience
+    likes: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "User",
+      default: [],
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const InterviewExperience =
-  mongoose.model(
-    "InterviewExperience",
-    interviewExperienceSchema
-  );
+const InterviewExperience = mongoose.model(
+  "InterviewExperience",
+  interviewExperienceSchema
+);
 
 export default InterviewExperience;

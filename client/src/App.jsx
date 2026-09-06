@@ -47,7 +47,6 @@ import AdminProfile from "./admin/AdminProfile";
 function App() {
   return (
     <Routes>
-
       {/* ================= PUBLIC ROUTES ================= */}
 
       <Route
@@ -69,7 +68,6 @@ function App() {
         path="/home"
         element={<Home />}
       />
-
 
       {/* ================= USER PROTECTED ROUTES ================= */}
 
@@ -118,7 +116,6 @@ function App() {
         }
       />
 
-
       {/* ================= COMPANY EXPLORER ================= */}
 
       <Route
@@ -138,7 +135,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-
 
       {/* ================= CODING PRACTICE ================= */}
 
@@ -160,7 +156,6 @@ function App() {
         }
       />
 
-
       {/* ================= ROLE EXPLORER ================= */}
 
       <Route
@@ -172,18 +167,12 @@ function App() {
         }
       />
 
-
       {/* ================= INTERVIEW EXPERIENCE COMMUNITY ================= */}
 
       <Route
         path="/interview-experiences"
-        element={
-          <ProtectedRoute>
-            <InterviewExperience />
-          </ProtectedRoute>
-        }
+        element={<InterviewExperience />}
       />
-
 
       {/* ================= ADMIN LOGIN ================= */}
 
@@ -192,14 +181,12 @@ function App() {
         element={<AdminLogin />}
       />
 
-
       {/* ================= ADMIN PANEL ================= */}
 
       <Route
         path="/admin"
         element={<AdminLayout />}
       >
-
         <Route
           index
           element={<AdminDashboard />}
@@ -249,9 +236,7 @@ function App() {
           path="profile"
           element={<AdminProfile />}
         />
-
       </Route>
-
 
       {/* ================= UNKNOWN ROUTES ================= */}
 
@@ -259,7 +244,6 @@ function App() {
         path="*"
         element={<Navigate to="/login" replace />}
       />
-
     </Routes>
   );
 }

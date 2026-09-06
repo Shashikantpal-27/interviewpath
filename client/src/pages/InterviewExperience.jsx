@@ -1,406 +1,431 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  FaArrowLeft,
-  FaSearch,
-  FaBuilding,
-  FaUserTie,
-  FaCalendarAlt,
-} from "react-icons/fa";
 
-function InterviewExperience() {
-  const navigate = useNavigate();
+const API_URL = "http://localhost:8080/api/v1/interview-experiences";
+const emptyForm = {
+  company: "",
+  role: "",
+  title: "",
+  difficulty: "Medium",
+  interviewDate: "",
+  rounds: "",
+  questions: "",
+  preparation: "",
+  experience: "",
+};
 
+export default function InterviewExperiences() {
   const [experiences, setExperiences] = useState([]);
-  const [filteredExperiences, setFilteredExperiences] = useState([]);
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
-  const itemsPerPage = 5;
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
 
-  useEffect(() => {
-    const sampleData = [
-      {
-        id: 1,
-        company: "Google",
-        role: "Software Engineer",
-        difficulty: "Hard",
-        date: "2026",
-        experience:
-          "The interview process included DSA, system design and behavioral rounds.",
-        rounds: ["Online Assessment", "DSA Interview", "System Design"],
-        tips:
-          "Focus on data structures, algorithms and communication skills.",
-      },
-      {
-        id: 2,
-        company: "Microsoft",
-        role: "Software Developer",
-        difficulty: "Medium",
-        date: "2026",
-        experience:
-          "Questions focused on problem solving, OOP concepts and projects.",
-        rounds: ["Coding Round", "Technical Interview", "HR Round"],
-        tips:
-          "Prepare DSA fundamentals and explain your projects clearly.",
-      },
-      {
-        id: 3,
-        company: "Amazon",
-        role: "SDE",
-        difficulty: "Hard",
-        date: "2026",
-        experience:
-          "The process focused heavily on coding and leadership principles.",
-        rounds: ["Online Test", "Technical Round", "Bar Raiser"],
-        tips:
-          "Practice DSA and prepare Amazon leadership principles.",
-      },
-      {
-        id: 4,
-        company: "Infosys",
-        role: "System Engineer",
-        difficulty: "Easy",
-        date: "2026",
-        experience:
-          "Basic programming, aptitude and HR questions were asked.",
-        rounds: ["Aptitude", "Technical", "HR"],
-        tips:
-          "Revise programming basics, DBMS and OOP concepts.",
-      },
-      {
-        id: 5,
-        company: "TCS",
-        role: "Digital Profile",
-        difficulty: "Medium",
-        date: "2026",
-        experience:
-          "The interview included programming questions and technical discussion.",
-        rounds: ["Coding Test", "Technical Interview", "HR"],
-        tips:
-          "Practice coding and revise your academic subjects.",
-      },
-      {
-        id: 6,
-        company: "Accenture",
-        role: "Associate Software Engineer",
-        difficulty: "Medium",
-        date: "2026",
-        experience:
-          "The process included aptitude, coding and communication rounds.",
-        rounds: ["Assessment", "Technical Interview", "HR"],
-        tips:
-          "Practice aptitude and prepare your projects.",
-      },
-      {
-        id: 7,
-        company: "Wipro",
-        role: "Project Engineer",
-        difficulty: "Easy",
-        date: "2026",
-        experience:
-          "Questions were mostly based on programming fundamentals.",
-        rounds: ["Online Assessment", "Technical Round", "HR"],
-        tips:
-          "Focus on OOP, DBMS and basic coding.",
-      },
-    ];
+  const token = localStorage.getItem("token");
 
-    setExperiences(sampleData);
-    setFilteredExperiences(sampleData);
-  }, []);
+  const showToast = (message, type = "success") => {
+    setToast({
+      show: true,
+      message,
+      type,
+    });
 
-  useEffect(() => {
-    const result = experiences.filter((item) =>
-      `${item.company} ${item.role} ${item.difficulty}`
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    );
-
-    setFilteredExperiences(result);
-    setCurrentPage(1);
-  }, [search, experiences]);
-
-  const totalPages = Math.ceil(
-    filteredExperiences.length / itemsPerPage
-  );
-
-  const startIndex =
-    (currentPage - 1) * itemsPerPage;
-
-  const currentExperiences =
-    filteredExperiences.slice(
-      startIndex,
-      startIndex + itemsPerPage
-    );
-
-  const getDifficultyStyle = (difficulty) => {
-    if (difficulty === "Easy") {
-      return "bg-green-100 text-green-700";
-    }
-
-    if (difficulty === "Medium") {
-      return "bg-yellow-100 text-yellow-700";
-    }
-
-    return "bg-red-100 text-red-700";
+    setTimeout(() => {
+      setToast({
+        show: false,
+        message: "",
+        type: "success",
+      });
+    }, 4000);
   };
 
+  const fetchExperiences = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch(API_URL);
+
+      if (!response.ok) {
+        throw new Error("Failed to load experiences");
+      }
+
+      const result = await response.json();
+      setExperiences(result.data || []);
+    } catch (err) {
+      showToast(err.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchExperiences();
+  }, []);
+
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!token) {
+      showToast("Please login first to share your experience.", "error");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to submit experience");
+      }
+
+      // Successful submit ke baad saare fields clear
+      setForm({ ...emptyForm });
+
+      // Form open rahega
+      setShowForm(true);
+
+      // Success toast
+      showToast(
+        "Experience submitted successfully! Admin approval ke baad publish hoga.",
+        "success"
+      );
+    } catch (err) {
+      showToast(err.message, "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const filteredExperiences = experiences.filter((item) => {
+    const text = `
+      ${item.company?.name || item.company || ""}
+      ${item.role?.name || item.role || ""}
+      ${item.title || ""}
+      ${item.difficulty || ""}
+    `.toLowerCase();
+
+    return text.includes(search.toLowerCase());
+  });
+
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="min-h-screen bg-white px-6 py-8">
+      {/* Toast Notification */}
+      {toast.show && (
+        <div
+          className={`fixed right-6 top-6 z-50 flex items-center gap-3 rounded-xl px-5 py-4 text-white shadow-lg ${
+            toast.type === "success" ? "bg-green-600" : "bg-red-600"
+          }`}
+        >
+          <span className="text-xl">
+            {toast.type === "success" ? "✓" : "!"}
+          </span>
 
-      {/* HEADER */}
-
-      <header className="bg-white border-b border-gray-200">
-
-        <div className="max-w-6xl mx-auto px-5 py-5 flex items-center gap-4">
+          <span>{toast.message}</span>
 
           <button
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 border border-gray-200 rounded-lg flex items-center justify-center hover:bg-gray-100 transition"
-            title="Go Back"
+            type="button"
+            onClick={() =>
+              setToast({
+                show: false,
+                message: "",
+                type: "success",
+              })
+            }
+            className="ml-3 text-xl font-bold"
           >
-            <FaArrowLeft />
+            ×
           </button>
+        </div>
+      )}
 
-          <div>
-            <p className="text-sm text-gray-500">
-              Community
-            </p>
+      {/* Header */}
+      <div className="mb-10 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-lg text-gray-500">Community</p>
 
-            <h1 className="text-2xl font-bold text-[var(--text)]">
-              Interview Experiences
-            </h1>
-          </div>
-
+          <h1 className="text-4xl font-bold text-[#35001b]">
+            Interview Experiences
+          </h1>
         </div>
 
-      </header>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="rounded-xl bg-[#35001b] px-5 py-3 font-semibold text-white transition hover:bg-[#52002b]"
+        >
+          {showForm ? "Close Form" : "+ Share Your Experience"}
+        </button>
+      </div>
 
+      {/* Intro */}
+      <div className="mb-10">
+        <h2 className="text-4xl font-bold text-[#35001b]">
+          Learn from real interview experiences 💡
+        </h2>
 
-      <main className="max-w-6xl mx-auto px-5 py-10">
+        <p className="mt-4 text-xl text-gray-500">
+          Explore interview experiences shared by students and prepare better
+          for your next opportunity.
+        </p>
+      </div>
 
-        {/* INTRO */}
-
-        <div className="mb-8">
-
-          <h2 className="text-3xl font-bold text-[var(--text)]">
-            Learn from real interview experiences 💡
+      {/* Share Experience Form */}
+      {showForm && (
+        <form
+          onSubmit={handleSubmit}
+          className="mb-8 rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-sm"
+        >
+          <h2 className="mb-6 text-2xl font-bold text-[#35001b]">
+            Share Your Interview Experience
           </h2>
 
-          <p className="text-gray-500 mt-3">
-            Explore interview experiences shared by students and prepare
-            better for your next opportunity.
-          </p>
+          <div className="grid gap-5 md:grid-cols-2">
+            {/* Company */}
+            <div>
+              <label className="mb-2 block font-medium">
+                Company Name *
+              </label>
 
-        </div>
+              <input
+                name="company"
+                value={form.company}
+                onChange={handleChange}
+                placeholder="e.g. TCS"
+                required
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#35001b]"
+              />
+            </div>
 
+            {/* Role */}
+            <div>
+              <label className="mb-2 block font-medium">
+                Role *
+              </label>
 
-        {/* SEARCH */}
+              <input
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                placeholder="e.g. Software Developer"
+                required
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#35001b]"
+              />
+            </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-8">
+            {/* Title */}
+            <div className="md:col-span-2">
+              <label className="mb-2 block font-medium">
+                Interview Title *
+              </label>
 
-          <div className="relative">
+              <input
+                name="title"
+                value={form.title}
+                onChange={handleChange}
+                placeholder="e.g. TCS Software Developer Interview Experience"
+                required
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#35001b]"
+              />
+            </div>
 
-            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            {/* Interview Date */}
+            <div>
+              <label className="mb-2 block font-medium">
+                Interview Date
+              </label>
 
-            <input
-              type="text"
-              placeholder="Search company, role or difficulty..."
-              value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
-              className="w-full border border-gray-200 rounded-lg py-3 pl-11 pr-4 focus:outline-none focus:ring-2 focus:ring-[#A53860]"
-            />
+              <input
+                type="date"
+                name="interviewDate"
+                value={form.interviewDate}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#35001b]"
+              />
+            </div>
 
+            {/* Difficulty */}
+            <div>
+              <label className="mb-2 block font-medium">
+                Difficulty *
+              </label>
+
+              <select
+                name="difficulty"
+                value={form.difficulty}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#35001b]"
+              >
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+              </select>
+            </div>
           </div>
 
+          {/* Rounds */}
+          <div className="mt-5">
+            <label className="mb-2 block font-medium">
+              Interview Rounds *
+            </label>
+
+            <textarea
+              name="rounds"
+              value={form.rounds}
+              onChange={handleChange}
+              placeholder="e.g. Aptitude, Technical, HR"
+              required
+              rows={3}
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#35001b]"
+            />
+          </div>
+
+          {/* Questions */}
+          <div className="mt-5">
+            <label className="mb-2 block font-medium">
+              Questions Asked *
+            </label>
+
+            <textarea
+              name="questions"
+              value={form.questions}
+              onChange={handleChange}
+              placeholder="Write the questions asked during the interview..."
+              required
+              rows={4}
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#35001b]"
+            />
+          </div>
+
+          {/* Preparation */}
+          <div className="mt-5">
+            <label className="mb-2 block font-medium">
+              Preparation Tips
+            </label>
+
+            <textarea
+              name="preparation"
+              value={form.preparation}
+              onChange={handleChange}
+              placeholder="How did you prepare?"
+              rows={4}
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#35001b]"
+            />
+          </div>
+
+          {/* Experience */}
+          <div className="mt-5">
+            <label className="mb-2 block font-medium">
+              Overall Experience *
+            </label>
+
+            <textarea
+              name="experience"
+              value={form.experience}
+              onChange={handleChange}
+              placeholder="Describe your interview experience..."
+              required
+              rows={5}
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#35001b]"
+            />
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={submitting}
+            className="mt-6 rounded-xl bg-[#35001b] px-6 py-3 font-semibold text-white disabled:opacity-60"
+          >
+            {submitting ? "Submitting..." : "Submit Experience"}
+          </button>
+        </form>
+      )}
+
+      {/* Search */}
+      <div className="mb-8 rounded-2xl border border-gray-200 p-6">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search company, role or difficulty..."
+          className="w-full rounded-xl border border-gray-300 px-5 py-4 text-lg outline-none focus:border-[#35001b]"
+        />
+      </div>
+
+      {/* Experiences */}
+      {loading ? (
+        <div className="py-12 text-center text-xl text-gray-500">
+          Loading interview experiences...
         </div>
-
-
-        {/* EXPERIENCES */}
-
-        <div className="space-y-5">
-
-          {currentExperiences.map((item) => (
-
+      ) : filteredExperiences.length === 0 ? (
+        <div className="rounded-2xl border border-gray-300 py-24 text-center text-xl text-gray-500">
+          No approved interview experiences found.
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2">
+          {filteredExperiences.map((item) => (
             <div
-              key={item.id}
-              className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition"
+              key={item._id || item.id}
+              className="rounded-2xl border border-gray-200 p-6 shadow-sm"
             >
-
-              {/* TOP */}
-
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
+              <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
-
-                  <div className="flex items-center gap-2 text-[#A53860]">
-
-                    <FaBuilding />
-
-                    <span className="font-semibold">
-                      {item.company}
-                    </span>
-
-                  </div>
-
-                  <h3 className="text-xl font-bold mt-2 text-[var(--text)]">
-                    {item.role}
+                  <h3 className="text-2xl font-bold text-[#35001b]">
+                    {item.title ||
+                      `${item.company?.name || item.company} Interview Experience`}
                   </h3>
 
+                  <p className="text-gray-600">
+                    {item.company?.name || item.company} —{" "}
+                    {item.role?.name || item.role}
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-3">
-
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyStyle(
-                      item.difficulty
-                    )}`}
-                  >
-                    {item.difficulty}
-                  </span>
-
-                  <span className="text-sm text-gray-500 flex items-center gap-2">
-                    <FaCalendarAlt />
-                    {item.date}
-                  </span>
-
-                </div>
-
+                <span className="rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-700">
+                  {item.difficulty}
+                </span>
               </div>
 
+              <p className="mb-3">
+                <strong>Rounds:</strong> {item.rounds}
+              </p>
 
-              {/* EXPERIENCE */}
+              <p className="mb-3 whitespace-pre-line">
+                <strong>Questions:</strong> {item.questions}
+              </p>
 
-              <p className="text-gray-600 mt-5 leading-relaxed">
+              <p className="mb-3 whitespace-pre-line">
+                <strong>Preparation:</strong>{" "}
+                {item.preparation || "Not provided"}
+              </p>
+
+              <p className="whitespace-pre-line text-gray-700">
                 {item.experience}
               </p>
-
-
-              {/* ROUNDS */}
-
-              <div className="mt-5">
-
-                <p className="font-semibold text-[var(--text)] mb-3">
-                  Interview Rounds
-                </p>
-
-                <div className="flex flex-wrap gap-2">
-
-                  {item.rounds.map((round) => (
-
-                    <span
-                      key={round}
-                      className="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600"
-                    >
-                      {round}
-                    </span>
-
-                  ))}
-
-                </div>
-
-              </div>
-
-
-              {/* TIP */}
-
-              <div className="mt-5 bg-[#FFF5F8] border border-[#F3C7D5] rounded-xl p-4">
-
-                <p className="font-semibold text-[#670D2F]">
-                  Preparation Tip
-                </p>
-
-                <p className="text-sm text-gray-600 mt-1">
-                  {item.tips}
-                </p>
-
-              </div>
-
             </div>
-
           ))}
-
-
-          {currentExperiences.length === 0 && (
-
-            <div className="text-center py-16 bg-white rounded-xl border">
-
-              <p className="text-gray-500">
-                No interview experiences found.
-              </p>
-
-            </div>
-
-          )}
-
         </div>
-
-
-        {/* PAGINATION */}
-
-        {totalPages > 1 && (
-
-          <div className="flex justify-center items-center gap-2 mt-10">
-
-            <button
-              disabled={currentPage === 1}
-              onClick={() =>
-                setCurrentPage((prev) => prev - 1)
-              }
-              className="px-4 py-2 border rounded-lg disabled:opacity-40"
-            >
-              ← Previous
-            </button>
-
-
-            {[...Array(totalPages)].map((_, index) => {
-
-              const page = index + 1;
-
-              return (
-
-                <button
-                  key={page}
-                  onClick={() =>
-                    setCurrentPage(page)
-                  }
-                  className={`w-10 h-10 rounded-lg ${
-                    currentPage === page
-                      ? "bg-[#670D2F] text-white"
-                      : "bg-white border border-gray-200"
-                  }`}
-                >
-                  {page}
-                </button>
-
-              );
-
-            })}
-
-
-            <button
-              disabled={
-                currentPage === totalPages
-              }
-              onClick={() =>
-                setCurrentPage((prev) => prev + 1)
-              }
-              className="px-4 py-2 border rounded-lg disabled:opacity-40"
-            >
-              Next →
-            </button>
-
-          </div>
-
-        )}
-
-      </main>
-
+      )}
     </div>
   );
 }
-
-export default InterviewExperience;

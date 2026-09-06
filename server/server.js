@@ -7,6 +7,30 @@ import path from "path";
 import "./config/dns.js";
 import connectDB from "./config/db.js";
 
+import authRoutes from "./routes/authRoutes.js";
+import resumeRoutes from "./routes/resumeRoutes.js";
+import interviewRoutes from "./routes/interviewRoutes.js";
+import studyPlannerRoutes from "./routes/studyPlannerRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
+import companyRoutes from "./routes/companyRoutes.js";
+import problemRoutes from "./routes/problemRoutes.js";
+import submissionRoutes from "./routes/submissionRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+
+import adminRoutes from "./routes/admin.routes.js";
+import adminLogRoutes from "./routes/adminLog.routes.js";
+import adminProfileRoutes from "./routes/adminProfile.routes.js";
+import companyAdminRoutes from "./routes/company.routes.js";
+import interviewExperienceAdminRoutes from "./routes/interviewExperience.routes.js";
+import reportAdminRoutes from "./routes/report.routes.js";
+import roadmapAdminRoutes from "./routes/roadmap.routes.js";
+import roleAdminRoutes from "./routes/role.routes.js";
+import settingsAdminRoutes from "./routes/settings.routes.js";
+
+import analyticsRoutes from "./routes/analyticsRoutes.js";
+import userAdminRoutes from "./routes/user.routes.js";
+import interviewCommunityRoutes from "./routes/interviewCommunity.routes.js";
+
 dotenv.config();
 
 dns.setServers([
@@ -20,9 +44,24 @@ const app = express();
 
 // ================= MIDDLEWARE =================
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+      // Allow requests without an Origin header
+      // such as Postman or server-to-server requests.
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
@@ -31,26 +70,12 @@ app.use(express.json());
 
 // ================= STATIC UPLOADS =================
 
-// Profile images will be available at:
-// http://localhost:8080/uploads/profiles/image-name.jpg
-
 app.use(
   "/uploads",
   express.static(path.join(process.cwd(), "uploads"))
 );
 
-
 // ================= USER ROUTES =================
-
-import authRoutes from "./routes/authRoutes.js";
-import resumeRoutes from "./routes/resumeRoutes.js";
-import interviewRoutes from "./routes/interviewRoutes.js";
-import studyPlannerRoutes from "./routes/studyPlannerRoutes.js";
-import dashboardRoutes from "./routes/dashboardRoutes.js";
-import companyRoutes from "./routes/companyRoutes.js";
-import problemRoutes from "./routes/problemRoutes.js";
-import submissionRoutes from "./routes/submissionRoutes.js";
-import profileRoutes from "./routes/profileRoutes.js";
 
 app.use("/api/v1/auth", authRoutes);
 
@@ -88,22 +113,7 @@ app.use(
   profileRoutes
 );
 
-
 // ================= ADMIN ROUTES =================
-
-import adminRoutes from "./routes/admin.routes.js";
-import adminLogRoutes from "./routes/adminLog.routes.js";
-import adminProfileRoutes from "./routes/adminProfile.routes.js";
-import companyAdminRoutes from "./routes/company.routes.js";
-import interviewExperienceAdminRoutes from "./routes/interviewExperience.routes.js";
-import reportAdminRoutes from "./routes/report.routes.js";
-import roadmapAdminRoutes from "./routes/roadmap.routes.js";
-import roleAdminRoutes from "./routes/role.routes.js";
-import settingsAdminRoutes from "./routes/settings.routes.js";
-
-import analyticsRoutes from "./routes/analyticsRoutes.js";
-import userAdminRoutes from "./routes/user.routes.js";
-
 
 app.use(
   "/api/v1/admin",
@@ -136,6 +146,11 @@ app.use(
 );
 
 app.use(
+  "/api/v1/interview-experiences",
+  interviewCommunityRoutes
+);
+
+app.use(
   "/api/v1/admin/reports",
   reportAdminRoutes
 );
@@ -160,7 +175,6 @@ app.use(
   analyticsRoutes
 );
 
-
 // ================= HEALTH =================
 
 app.get("/", (req, res) => {
@@ -170,13 +184,10 @@ app.get("/", (req, res) => {
   });
 });
 
-
 // ================= SERVER =================
 
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log(
-    `Server is running on port ${PORT}`
-  );
+  console.log(`Server is running on port ${PORT}`);
 });
