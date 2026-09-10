@@ -1,9 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL ||
-    "https://interviewpath.onrender.com/api/v1",
+  baseURL: "http://localhost:8080/api/v1",
 });
 
 api.interceptors.request.use(
@@ -16,9 +14,7 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 export default api;
