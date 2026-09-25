@@ -19,7 +19,7 @@ Tools: Git, GitHub, Postman
 
 🌐 Live Project
 
-👉 https://interviewpath-one.varcel.app/
+👉 [https://interviewpath-one.varcel.app/](https://interviewpath-one.vercel.app/)
 📌 Project
 
 Developed as a capstone project to provide students with a structured and easy-to-use interview preparation platform.
